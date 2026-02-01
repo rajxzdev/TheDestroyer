@@ -1,7 +1,7 @@
--- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.4 (Delta + Full GUI Fix)
--- 🔧 Fixed All Buttons + Enhanced GUI
+-- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.5 (Delta + Wall Hack Fix)
+-- 🔧 Fixed Wall Hack + Enhanced Debugging
 
--- 🎨 Improved GUI Design
+-- 🎨 GUI Layout Fix
 local function init_gui()
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
@@ -20,7 +20,7 @@ local function init_gui()
     
     -- 🖼️ Title Bar
     local title = Instance.new("TextLabel")
-    title.Text = "ShadowForge v3.4"
+    title.Text = "ShadowForge v3.5"
     title.Size = UDim2.new(1, 0, 0.1, 0)
     title.BackgroundColor3 = Color3.fromRGB(60,60,60)
     title.TextColor3 = Color3.fromRGB(255,255,255)
@@ -83,12 +83,25 @@ local function init_gui()
             local state = wallHackBtn.Text:match("ON") and "OFF" or "ON"
             wallHackBtn.Text = "Wall Hack: " .. state
             
-            if state == "ON" then
-                game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = true
-                game.Players.LocalPlayer.Character.HumanoidRootPart.Transparency = 1
+            local char = game.Players.LocalPlayer.Character
+            local rootPart = char:FindFirstChild("HumanoidRootPart")
+            
+            if not rootPart then
+                warn("RootPart not found! Trying alternate part...")
+                rootPart = char:FindFirstChild("Torso")
+            end
+            
+            if rootPart then
+                rootPart.Anchored = (state == "ON")
+                rootPart.Transparency = (state == "ON") and 1 or 0
+                
+                if state == "ON" then
+                    rootPart.CanCollide = false
+                else
+                    rootPart.CanCollide = true
+                end
             else
-                game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
-                game.Players.LocalPlayer.Character.HumanoidRootPart.Transparency = 0
+                warn("No root part found for wall hack!")
             end
         end)
     end
