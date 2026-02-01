@@ -1,9 +1,9 @@
 -- ==============================================================
---  ZHAK-GPT FINAL v3.0 | MOBILE FLY SUPPORT GUARANTEED
---  Panel akan langsung muncul. Fly bisa pakai joystick HP.
+--  ZHAK-GPT FINAL v4.0 | HORIZONTAL GUI FOR MOBILE
+--  GUI berbentuk horizontal (landscape), semua tombol terlihat
 -- ==============================================================
 
-print("🔥 [ZHAK] Memuat script v3.0 dengan Mobile Fly Support...")
+print("🔥 [ZHAK] Memuat script v4.0 dengan GUI Horizontal...")
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -19,12 +19,12 @@ local Settings = {
     Noclip = false, GodMode = false, InfJump = false,
 }
 local FlyBodyVelocity = nil
-local MobileFlyUp = false -- Status tombol naik di HP
-local MobileFlyDown = false -- Status tombol turun di HP
+local MobileFlyUp = false
+local MobileFlyDown = false
 local CurrentChar, CurrentHumanoid = nil, nil
 
 -- ==============================================
--- MEMBUAT GUI DENGAN CARA PALING AMAN
+-- MEMBUAT GUI HORIZONTAL (LANDSCAPE)
 -- ==============================================
 local function GetGuiParent()
     local success, coreGui = pcall(function() return game:GetService("CoreGui") end)
@@ -33,18 +33,19 @@ local function GetGuiParent()
 end
 
 local parent = GetGuiParent()
-if parent:FindFirstChild("ZhakFinalGUI") then parent:FindFirstChild("ZhakFinalGUI"):Destroy() end
+if parent:FindFirstChild("ZhakHorizontalGUI") then parent:FindFirstChild("ZhakHorizontalGUI"):Destroy() end
 
 local screen = Instance.new("ScreenGui")
-screen.Name = "ZhakFinalGUI"
+screen.Name = "ZhakHorizontalGUI"
 screen.Parent = parent
 screen.IgnoreGuiInset = true
 screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- MAIN FRAME HORIZONTAL (Landscape)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 320, 0, 480)
-mainFrame.Position = UDim2.new(0.5, -160, 0.5, -240)
-mainFrame.BackgroundColor3 = Color3.fromRGB(40, 20, 30)
+mainFrame.Size = UDim2.new(0, 500, 0, 280) -- Lebar 500, tinggi 280 (landscape)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -140) -- Tengah layar
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 15, 25)
 mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 127)
 mainFrame.BorderSizePixel = 3
 mainFrame.Draggable = true
@@ -53,18 +54,19 @@ mainFrame.Visible = true
 mainFrame.Parent = screen
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
+-- HEADER
 local header = Instance.new("TextLabel")
-header.Size = UDim2.new(1, 0, 0, 40)
+header.Size = UDim2.new(1, 0, 0, 35)
 header.BackgroundColor3 = Color3.fromRGB(255, 0, 127)
-header.Text = "✅ FINAL v3.0 | MOBILE SUPPORT"
+header.Text = "✅ ZHAK HORIZONTAL v4.0"
 header.TextColor3 = Color3.new(1, 1, 1)
 header.Font = Enum.Font.GothamBold
 header.TextSize = 16
 header.Parent = mainFrame
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -30, 0, 5)
 closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 40)
 closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -73,37 +75,43 @@ closeBtn.Parent = header
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
 closeBtn.MouseButton1Click:Connect(function() screen:Destroy() end)
 
+-- SCROLLING FRAME HORIZONTAL
 local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, 0, 1, -45)
-scrollFrame.Position = UDim2.new(0, 0, 0, 45)
+scrollFrame.Size = UDim2.new(1, -10, 1, -40) -- Sesuaikan dengan header
+scrollFrame.Position = UDim2.new(0, 5, 0, 40)
 scrollFrame.BackgroundTransparency = 1
-scrollFrame.ScrollBarThickness = 6
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
+scrollFrame.ScrollBarThickness = 5
+scrollFrame.ScrollingDirection = Enum.ScrollingDirection.X -- Scroll horizontal
+scrollFrame.CanvasSize = UDim2.new(0, 800, 0, 0) -- Lebar canvas 800
 scrollFrame.Parent = mainFrame
-local listLayout = Instance.new("UIListLayout", scrollFrame)
-listLayout.Padding = UDim.new(0, 8)
-listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local gridLayout = Instance.new("UIGridLayout")
+gridLayout.CellSize = UDim2.new(0, 150, 0, 40) -- Ukuran setiap tombol
+gridLayout.CellPadding = UDim2.new(0, 5, 0, 5)
+gridLayout.FillDirection = Enum.FillDirection.Horizontal
+gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+gridLayout.Parent = scrollFrame
 
 -- ==============================================
--- TOMBOL VIRTUAL UNTUK MOBILE FLY (NAIK/TURUN)
+-- TOMBOL VIRTUAL UNTUK MOBILE FLY
 -- ==============================================
 local MobileFlyPad = Instance.new("Frame")
-MobileFlyPad.Size = UDim2.new(0, 80, 0, 180)
-MobileFlyPad.Position = UDim2.new(1, -90, 1, -190) -- Pojok kanan bawah
+MobileFlyPad.Size = UDim2.new(0, 70, 0, 150)
+MobileFlyPad.Position = UDim2.new(1, -80, 1, -160) -- Pojok kanan bawah
 MobileFlyPad.BackgroundTransparency = 1
-MobileFlyPad.Visible = false -- Muncul hanya saat fly aktif
+MobileFlyPad.Visible = false
 MobileFlyPad.Parent = screen
 
 local function CreateFlyPadButton(text, yPos, action)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 80)
+    btn.Size = UDim2.new(1, 0, 0, 70)
     btn.Position = UDim2.new(0, 0, 0, yPos)
     btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     btn.BackgroundTransparency = 0.5
     btn.Text = text
     btn.TextColor3 = Color3.new(1, 1, 1)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 40
+    btn.TextSize = 30
     btn.Parent = MobileFlyPad
     Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
 
@@ -113,19 +121,20 @@ local function CreateFlyPadButton(text, yPos, action)
     btn.TouchTapOut:Connect(function() action(false) end)
 end
 
-CreateFlyPadButton("▲", 0, function(state) MobileFlyUp = state end) -- Tombol Naik
-CreateFlyPadButton("▼", 90, function(state) MobileFlyDown = state end) -- Tombol Turun
+CreateFlyPadButton("▲", 0, function(state) MobileFlyUp = state end)
+CreateFlyPadButton("▼", 75, function(state) MobileFlyDown = state end)
 
 -- ==============================================
--- FUNGSI MEMBUAT ELEMEN UI
+-- FUNGSI MEMBUAT TOMBOL
 -- ==============================================
 local function CreateButton(text, cb)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Size = UDim2.new(1, 0, 1, 0) -- Ukuran mengikuti grid
     btn.BackgroundColor3 = Color3.fromRGB(60, 30, 45)
     btn.Text = text
     btn.TextColor3 = Color3.new(1, 1, 1)
     btn.Font = Enum.Font.Gotham
+    btn.TextSize = 12
     btn.Parent = scrollFrame
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     if cb then btn.MouseButton1Click:Connect(function() cb(btn) end) end
@@ -134,26 +143,28 @@ end
 
 local function CreateTextBox(placeholder)
     local box = Instance.new("TextBox")
-    box.Size = UDim2.new(0.9, 0, 0, 35)
+    box.Size = UDim2.new(1, 0, 1, 0)
     box.BackgroundColor3 = Color3.fromRGB(20, 10, 15)
     box.PlaceholderText = placeholder
     box.Text = ""
     box.TextColor3 = Color3.new(1, 1, 1)
     box.Font = Enum.Font.Gotham
+    box.TextSize = 12
     box.Parent = scrollFrame
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
     return box
 end
 
 -- ==============================================
--- MEMBUAT SEMUA TOMBOL FITUR
+-- SEMUA TOMBOL FITUR (HORIZONTAL)
 -- ==============================================
+-- Baris 1: Fly & Speed
 local flyBtn = CreateButton("✈️ Fly: OFF", function(btn)
     Settings.Fly = not Settings.Fly
     btn.Text = "✈️ Fly: " .. (Settings.Fly and "ON" or "OFF")
     btn.BackgroundColor3 = Settings.Fly and Color3.fromRGB(200, 0, 100) or Color3.fromRGB(60, 30, 45)
     
-    MobileFlyPad.Visible = Settings.Fly -- Tampilkan/sembunyikan tombol virtual HP
+    MobileFlyPad.Visible = Settings.Fly
 
     if Settings.Fly then
         if CurrentChar and not FlyBodyVelocity then
@@ -168,27 +179,46 @@ local flyBtn = CreateButton("✈️ Fly: OFF", function(btn)
     end
 end)
 
-local flySpeedBox = CreateTextBox("Fly Speed (Default: 75)")
-local walkSpeedBox = CreateTextBox("Walk Speed (Default: 16)")
-local jumpPowerBox = CreateTextBox("Jump Power (Default: 50)")
+local flySpeedBox = CreateTextBox("Fly Speed: 75")
+local walkSpeedBox = CreateTextBox("Walk Speed: 16")
+local jumpPowerBox = CreateTextBox("Jump Power: 50")
 
-CreateButton("SET ALL SPEEDS", function()
-    Settings.FlySpeed = tonumber(flySpeedBox.Text) or 75
-    Settings.WalkSpeed = tonumber(walkSpeedBox.Text) or 16
-    Settings.JumpPower = tonumber(jumpPowerBox.Text) or 50
-    if CurrentHumanoid then
-        CurrentHumanoid.WalkSpeed = Settings.WalkSpeed
-        CurrentHumanoid.JumpPower = Settings.JumpPower
-    end
-    print("Kecepatan di-set!")
+-- Baris 2: Cheats
+CreateButton("👻 Noclip: OFF", function(btn) 
+    Settings.Noclip = not Settings.Noclip
+    btn.Text = "👻 Noclip: " .. (Settings.Noclip and "ON" or "OFF")
 end)
 
-CreateButton("👻 Noclip: OFF", function(btn) Settings.Noclip = not Settings.Noclip; btn.Text = "👻 Noclip: " .. (Settings.Noclip and "ON" or "OFF") end)
-CreateButton("💀 God Mode: OFF", function(btn) Settings.GodMode = not Settings.GodMode; btn.Text = "💀 God Mode: " .. (Settings.GodMode and "ON" or "OFF") end)
-CreateButton("♾️ Infinite Jump: OFF", function(btn) Settings.InfJump = not Settings.InfJump; btn.Text = "♾️ Infinite Jump: " .. (Settings.InfJump and "ON" or "OFF") end)
+CreateButton("💀 God Mode: OFF", function(btn) 
+    Settings.GodMode = not Settings.GodMode
+    btn.Text = "💀 God Mode: " .. (Settings.GodMode and "ON" or "OFF")
+end)
+
+CreateButton("♾️ Inf Jump: OFF", function(btn) 
+    Settings.InfJump = not Settings.InfJump
+    btn.Text = "♾️ Inf Jump: " .. (Settings.InfJump and "ON" or "OFF")
+end)
+
+-- Baris 3: Speed Controls
+CreateButton("SET FLY SPEED", function()
+    Settings.FlySpeed = tonumber(flySpeedBox.Text) or 75
+    print("Fly Speed di-set ke: " .. Settings.FlySpeed)
+end)
+
+CreateButton("SET WALK SPEED", function()
+    Settings.WalkSpeed = tonumber(walkSpeedBox.Text) or 16
+    if CurrentHumanoid then CurrentHumanoid.WalkSpeed = Settings.WalkSpeed end
+    print("Walk Speed di-set ke: " .. Settings.WalkSpeed)
+end)
+
+CreateButton("SET JUMP POWER", function()
+    Settings.JumpPower = tonumber(jumpPowerBox.Text) or 50
+    if CurrentHumanoid then CurrentHumanoid.JumpPower = Settings.JumpPower end
+    print("Jump Power di-set ke: " .. Settings.JumpPower)
+end)
 
 -- ==============================================
--- LOOP UTAMA (LOGIKA SEMUA FITUR)
+-- LOOP UTAMA
 -- ==============================================
 RunService.Heartbeat:Connect(function()
     CurrentChar = LocalPlayer.Character
@@ -203,23 +233,23 @@ RunService.Heartbeat:Connect(function()
         end
     end
 
-    -- LOGIKA FLY (PC + MOBILE HYBRID)
+    -- FLY LOGIC (PC + MOBILE)
     if Settings.Fly and FlyBodyVelocity then
         local cam = workspace.CurrentCamera
         local moveDir = Vector3.new()
         
-        -- Input Horizontal (Joystick HP & WASD PC)
+        -- Input Horizontal
         local joystickMove = (cam.CFrame.LookVector * -CurrentHumanoid.MoveDirection.Z) + (cam.CFrame.RightVector * CurrentHumanoid.MoveDirection.X)
-        if joystickMove.Magnitude > 0.1 then -- Jika joystick digerakkan
+        if joystickMove.Magnitude > 0.1 then
             moveDir += joystickMove
-        else -- Jika tidak, cek keyboard PC
+        else
             if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir += cam.CFrame.LookVector end
             if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir -= cam.CFrame.LookVector end
             if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir -= cam.CFrame.RightVector end
             if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir += cam.CFrame.RightVector end
         end
         
-        -- Input Vertikal (Tombol Virtual HP & Keyboard PC)
+        -- Input Vertikal
         if MobileFlyUp or UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0, 1, 0) end
         if MobileFlyDown or UIS:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0, 1, 0) end
         
@@ -233,4 +263,5 @@ UIS.JumpRequest:Connect(function()
     end
 end)
 
-print("✅ ZHAK FINAL v3.0 LOADED! Mobile Fly Support aktif.")
+print("✅ ZHAK HORIZONTAL v4.0 LOADED!")
+print("📱 GUI berbentuk landscape, semua tombol terlihat!")
