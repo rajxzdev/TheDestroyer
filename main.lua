@@ -1,79 +1,326 @@
--- Zhak-GPT Universal Exploit GUI 2025
--- Fitur: Fly, Speed, Noclip, God Mode, Infinite Jump, Mental Troll Part, Player Spec, Close & Minimize Button
--- Tekan Right Shift untuk toggle tampilan GUI
+-- Zhak-GPT UNIVERSAL FLY SCRIPT FOR MOBILE (2025)
+-- WORK DI SEMUA EXECUTOR MOBILE: Fluxus, Delta, Wave, Krnl, Electron
+-- FITUR: Fly, Speed, Virtual Pad, Noclip, God Mode, Troll Part
 
--- Services
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
--- Variables
 local LocalPlayer = Players.LocalPlayer
 local CurrentChar = nil
 local CurrentHumanoid = nil
-local isSpectating = false
-local spectateConnection = nil
 
--- Settings
+-- ⚙️ SETTINGS
 local Settings = {
     Fly = false,
     FlySpeed = 75,
     WalkSpeed = 50,
     JumpPower = 75,
     Noclip = false,
-    InfiniteJump = false,
     GodMode = false,
     TrollPartSize = 10
 }
 
+-- 📱 VIRTUAL PAD INPUT (UNTUK MOBILE)
+local MobileInput = {
+    Forward = false,   -- W
+    Backward = false,  -- S
+    Left = false,      -- A
+    Right = false,     -- D
+    Up = false,        -- SPACE (Naik)
+    Down = false       -- LEFTCTRL (Turun)
+}
+
 -- ==============================================
-// GUI UTAMA
+// 🛠️ MEMBUAT GUI UNTUK MOBILE
 -- ==============================================
 local GUI = Instance.new("ScreenGui")
-GUI.Name = "ZhakUniversalGUI"
+GUI.Name = "ZhakMobileGUI"
 GUI.Parent = LocalPlayer.PlayerGui
 GUI.ResetOnSpawn = false
 GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- Auto Adjust ke ukuran layar HP
+local ScreenSize = workspace.CurrentCamera.ViewportSize
+
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 380, 0, 630)
-MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 340, 0, 520)
+-- Posisi di pojok kiri bawah (lebih nyaman untuk HP)
+MainFrame.Position = UDim2.new(0.02, 0, 0.7, 0) 
 MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = GUI
 
-local OriginalSize = MainFrame.Size
-local Minimized = false
-
--- Header GUI
+-- HEADER
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 40)
 Header.BackgroundColor3 = Color3.fromRGB(0, 180, 90)
 Header.Parent = MainFrame
 
 local HeaderText = Instance.new("TextLabel")
-HeaderText.Size = UDim2.new(0.6, 0, 1, 0)
-HeaderText.Position = UDim2.new(0.05, 0, 0, 0)
+HeaderText.Size = UDim2.new(0.8, 0, 1, 0)
 HeaderText.BackgroundTransparency = 1
-HeaderText.Text = "📶 ZHAK UNIVERSAL EXPLOIT"
+HeaderText.Text = "📱 MOBILE FLY GUI"
 HeaderText.TextColor3 = Color3.new(1,1,1)
 HeaderText.Font = Enum.Font.GothamBold
-HeaderText.TextSize = 15
-HeaderText.TextXAlignment = Enum.TextXAlignment.Left
+HeaderText.TextSize = 16
 HeaderText.Parent = Header
 
--- ================== TOMBOL CLOSE & MINIMIZE ==================
--- Tombol Minimize (- / +)
-local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
-MinimizeBtn.Position = UDim2.new(1, -70, 0, 5)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 190, 0)
-MinimizeBtn.Text = "–"
-MinimizeBtn.TextColor3 = Color3.new(1,1,1)
-MinimizeBtn.Font = Enum.Font.GothamBold
-MinimizeBtn.TextSize = 18
+-- TOMBOL CLOSE (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Position = UDim2.new(1, -40, 0, 2.5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 18
+CloseBtn.Parent = Header
+
+CloseBtn.MouseButton1Click:Connect(function()
+    GUI:Destroy()
+    print("GUI Ditutup")
+end)
+
+-- Fungsi buat toggle button
+local function CreateToggle(text, yPos, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0.92, 0, 0, 35)
+    Btn.Position = UDim2.new(0.04, 0, yPos, 0)
+    Btn.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
+    Btn.Text = text
+    Btn.TextColor3 = Color3.new(1,1,1)
+    Btn.Font = Enum.Font.Gotham
+    Btn.TextSize = 14
+    Btn.Parent = MainFrame
+
+    Btn.MouseButton1Click:Connect(callback)
+    return Btn
+end
+
+-- Fungsi buat slider
+local function CreateSlider(labelText, yPos, min, max, default, onChange)
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, 0, 0, 20)
+    Label.Position = UDim2.new(0, 0, yPos, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = labelText .. ": " .. default
+    Label.TextColor3 = Color3.new(1,1,1)
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 13
+    Label.Parent = MainFrame
+
+    local Slider = Instance.new("Frame")
+    Slider.Size = UDim2.new(0.92, 0, 0, 6)
+    Slider.Position = UDim2.new(0.04, 0, yPos + 0.035, 0)
+    Slider.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+    Slider.Parent = MainFrame
+
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Size = UDim2.new(default/max, 0, 1, 0)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 180, 90)
+    SliderFill.Parent = Slider
+
+    local SliderBtn = Instance.new("TextButton")
+    SliderBtn.Size = UDim2.new(0, 14, 0, 14)
+    SliderBtn.Position = UDim2.new(default/max, -7, 0.5, -7)
+    SliderBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 90)
+    SliderBtn.BorderSizePixel = 0
+    SliderBtn.Parent = Slider
+    SliderBtn.AutoButtonColor = false
+
+    local dragging = false
+
+    SliderBtn.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    RunService.Heartbeat:Connect(function()
+        if dragging then
+            local inputPos
+            -- DETEKSI INPUT BAIK MOUSE ATAU TOUCH
+            if UIS:GetInputState(Enum.UserInputType.MouseButton1) then
+                inputPos = UIS:GetMouseLocation()
+            elseif UIS:GetInputState(Enum.UserInputType.Touch) then
+                inputPos = UIS:GetTouchLocation()
+            else
+                return
+            end
+
+            local relPos = (inputPos.X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X
+            relPos = math.clamp(relPos, 0, 1)
+            local value = math.floor(relPos * max)
+            
+            SliderFill.Size = UDim2.new(relPos, 0, 1, 0)
+            SliderBtn.Position = UDim2.new(relPos, -7, 0.5, -7)
+            Label.Text = labelText .. ": " .. value
+            onChange(value)
+        end
+    end)
+end
+
+-- ==============================================
+// 🔘 VIRTUAL PAD (TOMBOL ARAH UNTUK MOBILE)
+// ==============================================
+local function CreateVirtualPad()
+    local PadFrame = Instance.new("Frame")
+    PadFrame.Name = "VirtualPad"
+    PadFrame.Size = UDim2.new(0, 180, 0, 180)
+    PadFrame.Position = UDim2.new(0.5, -90, 1, -190) -- pojok kanan bawah
+    PadFrame.BackgroundTransparency = 0.7
+    PadFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    PadFrame.BorderSizePixel = 2
+    PadFrame.BorderColor3 = Color3.new(0,0,0)
+    PadFrame.Parent = GUI
+
+    -- Tombol Arah (8 arah)
+    local Buttons = {
+        {Name = "UP", Symbol = "▲", Pos = UDim2.new(0.5, -25, 0.2, 0), Dir = "Up"},
+        {Name = "DOWN", Symbol = "▼", Pos = UDim2.new(0.5, -25, 0.8, 0), Dir = "Down"},
+        {Name = "LEFT", Symbol = "◀", Pos = UDim2.new(0.2, 0, 0.5, -25), Dir = "Left"},
+        {Name = "RIGHT", Symbol = "▶", Pos = UDim2.new(0.8, 0, 0.5, -25), Dir = "Right"},
+        {Name = "UP", Symbol = "↗", Pos = UDim2.new(0.8, 0, 0.2, 0), Dir = {"Up","Right"}},
+        {Name = "UP", Symbol = "↖", Pos = UDim2.new(0.2, 0, 0.2, 0), Dir = {"Up","Left"}},
+        {Name = "DOWN", Symbol = "↘", Pos = UDim2.new(0.8, 0, 0.8, 0), Dir = {"Down","Right"}},
+        {Name = "DOWN", Symbol = "↙", Pos = UDim2.new(0.2, 0, 0.8, 0), Dir = {"Down","Left"}}
+    }
+
+    for _, btnInfo in ipairs(Buttons) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 50, 0, 50)
+        btn.Position = btnInfo.Pos
+        btn.Text = btnInfo.Symbol
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 24
+        btn.BackgroundColor3 = Color3.fromRGB(60, 110, 170)
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Parent = PadFrame
+
+        btn.MouseButton1Down:Connect(function()
+            if type(btnInfo.Dir) == "table" then
+                for _, dir in ipairs(btnInfo.Dir) do
+                    MobileInput[dir] = true
+                end
+            else
+                MobileInput[btnInfo.Dir] = true
+            end
+        end)
+
+        btn.MouseButton1Up:Connect(function()
+            if type(btnInfo.Dir) == "table" then
+                for _, dir in ipairs(btnInfo.Dir) do
+                    MobileInput[dir] = false
+                end
+            else
+                MobileInput[btnInfo.Dir] = false
+            end
+        end)
+
+        -- Support untuk TOUCH HOLD
+        btn.TouchTapIn:Connect(function()
+            if type(btnInfo.Dir) == "table" then
+                for _, dir in ipairs(btnInfo.Dir) do
+                    MobileInput[dir] = true
+                end
+            else
+                MobileInput[btnInfo.Dir] = true
+            end
+        end)
+
+        btn.TouchTapOut:Connect(function()
+            if type(btnInfo.Dir) == "table" then
+                for _, dir in ipairs(btnInfo.Dir) do
+                    MobileInput[dir] = false
+                end
+            else
+                MobileInput[btnInfo.Dir] = false
+            end
+        end)
+    end
+
+    -- Tombol tengah (untuk reset)
+    local CenterBtn = Instance.new("TextButton")
+    CenterBtn.Size = UDim2.new(0, 50, 0, 50)
+    CenterBtn.Position = UDim2.new(0.5, -25, 0.5, -25)
+    CenterBtn.Text = "⦿"
+    CenterBtn.Font = Enum.Font.GothamBold
+    CenterBtn.TextSize = 24
+    CenterBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+    CenterBtn.TextColor3 = Color3.new(1,1,1)
+    CenterBtn.Parent = PadFrame
+
+    CenterBtn.MouseButton1Down:Connect(function()
+        -- Reset semua arah
+        MobileInput.Forward = false
+        MobileInput.Backward = false
+        MobileInput.Left = false
+        MobileInput.Right = false
+        MobileInput.Up = false
+        MobileInput.Down = false
+    end)
+end
+
+CreateVirtualPad() -- Panggil fungsi untuk buat virtual pad
+
+-- ==============================================
+// 🔧 SEMUA TOMBOL FITUR
+-- ==============================================
+-- Fly Toggle
+local FlyBtn = CreateToggle("✈️ FLY: OFF", 0.12, function()
+    Settings.Fly = not Settings.Fly
+    FlyBtn.Text = "✈️ FLY: " .. (Settings.Fly and "ON" or "OFF")
+    
+    if Settings.Fly then
+        if CurrentHumanoid then
+            CurrentHumanoid.PlatformStand = true
+        end
+    else
+        if CurrentHumanoid then
+            CurrentHumanoid.PlatformStand = false
+        end
+    end
+end)
+
+-- Slider Fly Speed
+CreateSlider("🚀 Fly Speed", 0.22, 10, 200, Settings.FlySpeed, function(val)
+    Settings.FlySpeed = val
+end)
+
+-- Slider Walk Speed
+CreateSlider("🏃 Walk Speed", 0.35, 16, 200, Settings.WalkSpeed, function(val)
+    Settings.WalkSpeed = val
+    if CurrentHumanoid then
+        CurrentHumanoid.WalkSpeed = val
+    end
+end)
+
+-- Slider Jump Power
+CreateSlider("🦘 Jump Power", 0.48, 50, 200, Settings.JumpPower, function(val)
+    Settings.JumpPower = val
+    if CurrentHumanoid then
+        CurrentHumanoid.JumpPower = val
+    end
+end)
+
+-- Noclip Toggle
+CreateToggle("👻 Noclip: OFF", 0.61, function(btn)
+    Settings.Noclip = not Settings.Noclip
+    btn.Text = "👻 Noclip: " .. (Settings.Noclip and "ON" or "OFF")
+end)
+
+-- God Mode Toggle
+CreateToggle("💀 God Mode: OFF", 0.68, function(btn)
+    Settings.GodMode = not Settings.GodMode
+    btn.Text = "💀 God Mode: " .. ( &hellip;MinimizeBtn.TextSize = 18
 MinimizeBtn.Parent = Header
 
 MinimizeBtn.MouseButton1Click:Connect(function()
