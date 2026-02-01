@@ -1,27 +1,24 @@
--- TheDestroyer 2026 - CLEAN PRO EDITION
--- by rajxzdev – King without ban
--- Fly/Speed adjustable + Mobile perfect
+-- rajxzdev 2026 CLEAN PRO – GUI 100% MUNcul
+-- Paste langsung → GUI langsung keluar di semua executor
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local HRP = Character:WaitForChild("HumanoidRootPart")
-
--- GUI CANTIK 2026
 local gui = Instance.new("ScreenGui")
-gui.Name = "rajxzdevClean"
+gui.Name = "rajxzdev2026"
 gui.ResetOnSpawn = false
-gui.Parent = game.CoreGui
+
+-- FIX PALING AMPUH 2026
+if syn then
+    syn.protect_gui(gui)
+    gui.Parent = game.CoreGui
+elseif gethui then
+    gui.Parent = gethui()
+else
+    gui.Parent = game:GetService("CoreGui")
+end
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 360, 0, 480)
-main.Position = UDim2.new(0.5, -180, 0.5, -240)
-main.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+main.Size = UDim2.new(0, 380, 0, 520)
+main.Position = UDim2.new(0.5, -190, 0.5, -260)
+main.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
@@ -30,50 +27,114 @@ local corner = Instance.new("UICorner", main)
 corner.CornerRadius = UDim.new(0, 20)
 
 local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 60)
-title.BackgroundColor3 = Color3.fromRGB(80, 0, 255)
+title.Size = UDim2.new(1, 0, 0, 70)
+title.BackgroundColor3 = Color3.fromRGB(120, 0, 255)
 title.Text = "rajxzdev 2026"
 title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.GothamBlack
-title.TextSize = 28
+title.TextSize = 36
+title.TextStrokeTransparency = 0
 Instance.new("UICorner", title).CornerRadius = UDim.new(0, 20)
 
--- Slider Function
-local function Slider(name, pos, min, max, default, callback)
-    local slider = Instance.new("Frame", main)
-    slider.Size = UDim2.new(0.9, 0, 0, 50)
-    slider.Position = UDim2.new(0.05, 0, 0, pos)
-    slider.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    
-    local label = Instance.new("TextLabel", slider)
-    label.Size = UDim2.new(0.6, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = name .. ": " .. default
-    label.TextColor3 = Color3.new(1,1,1)
-    label.Font = Enum.Font.GothamBold
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Position = UDim2.new(0, 10, 0, 0)
+-- Slider Fly Speed
+local flyspeed = 200
+local flyslider = Instance.new("TextBox", main)
+flyslider.Size = UDim2.new(0.8, 0, 0, 50)
+flyslider.Position = UDim2.new(0.1, 0, 0, 100)
+flyslider.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+flyslider.Text = "Fly Speed: " .. flyspeed
+flyslider.TextColor3 = Color3.new(1,1,1)
+flyslider.Font = Enum.Font.GothamBold
+flyslider.TextSize = 20
+Instance.new("UICorner", flyslider).CornerRadius = UDim.new(0, 12)
 
-    local bar = Instance.new("TextButton", slider)
-    bar.Size = UDim2.new(0.7, 0, 0.4, 0)
-    bar.Position = UDim2.new(0.25, 0, 0.3, 0)
-    bar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    bar.Text = ""
-    
-    local fill = Instance.new("Frame", bar)
-    fill.Size = UDim2.new(default / max, 0, 1, 0)
-    fill.BackgroundColor3 = Color3.fromRGB(120, 0, 255)
-    
-    bar.MouseButton1Down:Connect(function()
-        local mouse = LocalPlayer:GetMouse()
-        local connection
-        connection = RunService.RenderStepped:Connect(function()
-            local pos = mouse.X - bar.AbsolutePosition.X
-            local percent = math.clamp(pos / bar.AbsoluteSize.X, 0, 1)
-            fill.Size = UDim2.new(percent, 0, 1, 0)
-            local value = math.floor(min + (max - min) * percent)
-            label.Text = name .. ": " .. value
-            callback(value)
+-- Slider Walk Speed
+local walkspeed = 200
+local walkspeedslider = Instance.new("TextBox", main)
+walkspeedslider.Size = UDim2.new(0.8, 0, 0, 50)
+walkspeedslider.Position = UDim2.new(0.1, 0, 0, 170)
+walkspeedslider.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+walkspeedslider.Text = "Walk Speed: " .. walkspeed
+walkspeedslider.TextColor3 = Color3.new(1,1,1)
+walkspeedslider.Font = Enum.Font.GothamBold
+walkspeedslider.TextSize = 20
+Instance.new("UICorner", walkspeedslider).CornerRadius = UDim.new(0, 12)
+
+-- Buttons
+local function btn(name, pos, color, func)
+    local b = Instance.new("TextButton", main)
+    b.Size = UDim2.new(0.8, 0, 0, 60)
+    b.Position = UDim2.new(0.1, 0, 0, pos)
+    b.BackgroundColor3 = color
+    b.Text = name
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 24
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 14)
+    b.MouseButton1Click:Connect(func)
+end
+
+local flying = false
+btn("Toggle Fly", 240, Color3.fromRGB(0, 180, 255), function()
+    flying = not flying
+    local char = Players.LocalPlayer.Character or Players.LocalPlayer.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    if flying then
+        local bv = Instance.new("BodyVelocity", hrp)
+        bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+        local bg = Instance.new("BodyGyro", hrp)
+        bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+        bg.P = 9e9
+        spawn(function()
+            while flying do
+                local dir = Vector3.new(0,0,0)
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0,1,0) end
+                bv.Velocity = dir * flyspeed
+                bg.CFrame = Camera.CFrame
+                task.wait()
+            end
+            bv:Destroy()
+            bg:Destroy()
+        end)
+    end
+end)
+
+btn("Infinite Jump", 320, Color3.fromRGB(0, 255, 150), function()
+    UserInputService.JumpRequest:Connect(function()
+        Humanoid:ChangeState("Jumping")
+    end)
+end)
+
+btn("Wallhack", 400, Color3.fromRGB(255, 0, 150), function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            for _, part in pairs(plr.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Transparency = part.Transparency == 0.7 and 0 or 0.7
+                end
+            end
+        end
+    end
+end)
+
+-- Update speed real-time
+flyslider.FocusLost:Connect(function()
+    flyspeed = tonumber(flyslider.Text:match("%d+")) or 200
+    flyslider.Text = "Fly Speed: " .. flyspeed
+end)
+
+walkspeedslider.FocusLost:Connect(function()
+    walkspeed = tonumber(walkspeedslider.Text:match("%d+")) or 200
+    walkspeedslider.Text = "Walk Speed: " .. walkspeed
+    Humanoid.WalkSpeed = walkspeed
+end)
+
+print("rajxzdev 2026 CLEAN PRO – GUI 100% MUNcul – Mobile/PC Perfect")            callback(value)
         end)
         mouse.Button1Up:Connect(function()
             connection:Disconnect()
