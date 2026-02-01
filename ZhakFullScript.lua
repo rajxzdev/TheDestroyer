@@ -1,5 +1,5 @@
--- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.6 (Delta + Grava Hub Branding)
--- 🎨 Full UI Refresh + Wall Hack Fix
+-- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.7 (Delta + FULL UI FIX)
+-- 🔧 FIXED TITLE + BUTTONS + WALL HACK
 
 -- 🎮 GUI Layout with Grava Hub Branding
 local function init_gui()
@@ -20,11 +20,11 @@ local function init_gui()
     
     -- 🖼️ Title Bar with Grava Logo
     local title = Instance.new("TextLabel")
-    title.Text = "Grava Hub v3.6"
+    title.Text = "Grava Hub v3.7"  -- FIXED TITLE
     title.Size = UDim2.new(1, 0, 0.1, 0)
     title.BackgroundColor3 = Color3.fromRGB(30,30,30)
     title.TextColor3 = Color3.fromRGB(0,150,255)
-    title.Font = Enum.Font.GothamBold
+    title.Font = Enum.Font.SourceSansBold  -- Fallback font for mobile
     title.TextSize = 14
     title.Parent = frame
     
@@ -42,7 +42,7 @@ local function init_gui()
         btn.Position = UDim2.new(x, 0, y, 0)
         btn.BackgroundColor3 = Color3.fromRGB(255,255,255)
         btn.TextColor3 = Color3.fromRGB(0,150,255)
-        btn.Font = Enum.Font.Gotham
+        btn.Font = Enum.Font.SourceSansBold  -- Fallback font
         btn.BorderSizePixel = 1
         btn.BorderColor3 = Color3.fromRGB(0,150,255)
         btn.Parent = parent
