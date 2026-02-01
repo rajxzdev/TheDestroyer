@@ -1,7 +1,7 @@
--- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.9.2 (FINAL FIX)
--- 🔧 FULL GUI REWRITE + INTERACTIVITY FIX
+-- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v4.0 (ULTIMATE FIX)
+-- 🔧 FULL REWRITE + TOUCH EVENTS + DIRECT GUI MANIPULATION
 
--- 🎮 Core GUI Initialization
+-- 🎮 GUI Initialization
 local function init_gui()
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
@@ -10,7 +10,7 @@ local function init_gui()
     
     -- 🎯 Main Frame (Grava Hub Style)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.4, 0, 0.7, 0)  -- Increased height
+    frame.Size = UDim2.new(0.4, 0, 0.7, 0)
     frame.Position = UDim2.new(0.3, 0, 0.15, 0)
     frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
     frame.BackgroundTransparency = 0.2
@@ -18,9 +18,9 @@ local function init_gui()
     frame.BorderSizePixel = 2
     frame.Parent = gui
     
-    -- 🖼️ Title Bar with Minimize/Close Buttons
+    -- 🖼️ Title Bar
     local title = Instance.new("TextLabel")
-    title.Text = "Grava Hub v3.9.2"
+    title.Text = "Grava Hub v4.0"
     title.Size = UDim2.new(1, 0, 0.1, 0)
     title.BackgroundColor3 = Color3.fromRGB(30,30,30)
     title.TextColor3 = Color3.fromRGB(0,150,255)
@@ -28,7 +28,7 @@ local function init_gui()
     title.TextSize = 14
     title.Parent = frame
     
-    -- 🚫 Close Button (INTERACTIVE FIX)
+    -- 🚫 Close Button (TOUCH EVENT)
     local closeBtn = Instance.new("TextButton")
     closeBtn.Text = "X"
     closeBtn.Size = UDim2.new(0.1, 0, 1, 0)
@@ -38,7 +38,7 @@ local function init_gui()
     closeBtn.Font = Enum.Font.SourceSansBold
     closeBtn.Parent = title
     
-    -- 📐 Minimize Button (INTERACTIVE FIX)
+    -- 📐 Minimize Button (TOUCH EVENT)
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Text = "-"
     minimizeBtn.Size = UDim2.new(0.1, 0, 1, 0)
@@ -48,17 +48,17 @@ local function init_gui()
     minimizeBtn.Font = Enum.Font.SourceSansBold
     minimizeBtn.Parent = title
     
-    -- 🛠️ Control Buttons (FINAL POSITIONING)
+    -- 🛠️ Control Buttons (TOUCH EVENTS)
     local speedBtn = createButton(frame, "Speed: 16", 0, 0.1)
     local flyBtn = createButton(frame, "Fly: 100", 0, 0.2)
     local jumpBtn = createButton(frame, "Jump: 50", 0, 0.3)
     local wallHackBtn = createButton(frame, "Wall Hack: OFF", 0, 0.4)
     
-    -- 🎮 Button Creation Helper (DEBUG OUTPUT)
+    -- 🎮 Button Creation Helper
     local function createButton(parent, text, x, y)
         local btn = Instance.new("TextButton")
         btn.Text = text
-        btn.Size = UDim2.new(1, 0, 0.15, 0)  -- Height 0.15
+        btn.Size = UDim2.new(1, 0, 0.15, 0)
         btn.Position = UDim2.new(x, 0, y, 0)
         btn.BackgroundColor3 = Color3.fromRGB(255,255,255)
         btn.TextColor3 = Color3.fromRGB(0,150,255)
@@ -127,52 +127,44 @@ local function init_gui()
         end)
     end
     
-    -- 📲 Button Handlers (INTERACTIVITY FIX)
-    speedBtn.MouseButton1Down:Connect(function()
-        local newVal = 16 + (math.random() * 20)
-        applySpeed(newVal)
-        speedBtn.Text = "Speed: " .. newVal
-        warn("Speed button clicked: " .. newVal)
-    end)
-    
-    flyBtn.MouseButton1Down:Connect(function()
-        local newVal = 100 + (math.random() * 100)
-        applyFly(newVal)
-        flyBtn.Text = "Fly: " .. newVal
-        warn("Fly button clicked: " .. newVal)
-    end)
-    
-    jumpBtn.MouseButton1Down:Connect(function()
-        local newVal = 50 + (math.random() * 50)
-        applyJump(newVal)
-        jumpBtn.Text = "Jump: " .. newVal
-        warn("Jump button clicked: " .. newVal)
-    end)
-    
-    wallHackBtn.MouseButton1Down:Connect(function()
-        toggleWallHack()
-        warn("Wall Hack button clicked")
-    end)
-    
-    -- 🚫 Close Button Function (INTERACTIVITY FIX)
-    closeBtn.MouseButton1Down:Connect(function()
-        warn("Close button clicked")
-        frame:Destroy()
-    end)
-    
-    -- 📐 Minimize Button Function (INTERACTIVITY FIX)
-    local minimized = false
-    minimizeBtn.MouseButton1Down:Connect(function()
-        warn("Minimize button clicked")
-        minimized = not minimized
-        if minimized then
-            frame.Size = UDim2.new(0.4, 0, 0.1, 0)  -- Hide content
-            minimizeBtn.Text = "+"
-        else
-            frame.Size = UDim2.new(0.4, 0, 0.7, 0)  -- Show content
-            minimizeBtn.Text = "-"
+    -- 📲 TOUCH EVENT HANDLERS (FOR MOBILE)
+    local function onTouchInput(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            local position = input.Position
+            local hit = frame:FindFirstChildOfClass("TextButton") and frame:FindFirstChildOfClass("TextButton"):HitTest(position)
+            
+            if hit then
+                local btn = hit.Parent
+                if btn:IsA("TextButton") then
+                    warn("Touched: " .. btn.Text)
+                    
+                    if btn.Text:match("Speed") then
+                        local newVal = 16 + (math.random() * 20)
+                        applySpeed(newVal)
+                        btn.Text = "Speed: " .. newVal
+                    elseif btn.Text:match("Fly") then
+                        local newVal = 100 + (math.random() * 100)
+                        applyFly(newVal)
+                        btn.Text = "Fly: " .. newVal
+                    elseif btn.Text:match("Jump") then
+                        local newVal = 50 + (math.random() * 50)
+                        applyJump(newVal)
+                        btn.Text = "Jump: " .. newVal
+                    elseif btn.Text:match("Wall Hack") then
+                        toggleWallHack()
+                    elseif btn.Text == "X" then
+                        frame:Destroy()
+                    elseif btn.Text == "-" then
+                        local minimized = frame.Size.Y.Scale < 0.2
+                        frame.Size = UDim2.new(0.4, 0, minimized and 0.7 or 0.1, 0)
+                        btn.Text = minimized and "+" or "-"
+                    end
+                end
+            end
         end
-    end)
+    end
+    
+    game:GetService("UserInputService").InputBegan:Connect(onTouchInput)
     
     -- 🔁 Main Loop
     spawn(function()
