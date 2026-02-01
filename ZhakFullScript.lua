@@ -1,5 +1,5 @@
--- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.8 (Delta + FULL UI WITH MINIMIZE/CLOSE)
--- 🔧 FINAL FIX: ALL BUTTONS VISIBLE + MINIMIZE/CLOSE FUNCTIONALITY
+-- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.9 (Delta + FINAL BUTTON FIX)
+-- 🔧 FINAL FINAL FIX: ALL BUTTONS VISIBLE + DEBUG OUTPUT
 
 -- 🎮 GUI Layout with Grava Hub Branding
 local function init_gui()
@@ -10,7 +10,7 @@ local function init_gui()
     
     -- 🎯 Main Frame (Grava Hub Style)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.4, 0, 0.5, 0)  -- Increased height for buttons
+    frame.Size = UDim2.new(0.4, 0, 0.6, 0)  -- Increased height to 0.6
     frame.Position = UDim2.new(0.3, 0, 0.2, 0)
     frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
     frame.BackgroundTransparency = 0.2
@@ -20,7 +20,7 @@ local function init_gui()
     
     -- 🖼️ Title Bar with Minimize/Close Buttons
     local title = Instance.new("TextLabel")
-    title.Text = "Grava Hub v3.8"
+    title.Text = "Grava Hub v3.9"
     title.Size = UDim2.new(1, 0, 0.1, 0)
     title.BackgroundColor3 = Color3.fromRGB(30,30,30)
     title.TextColor3 = Color3.fromRGB(0,150,255)
@@ -48,17 +48,17 @@ local function init_gui()
     minimizeBtn.Font = Enum.Font.SourceSansBold
     minimizeBtn.Parent = title
     
-    -- 🛠️ Control Buttons
+    -- 🛠️ Control Buttons (DEBUG OUTPUT ADDED)
     local speedBtn = createButton(frame, "Speed: 16", 0, 0.1)
-    local flyBtn = createButton(frame, "Fly: 100", 0, 0.25)
-    local jumpBtn = createButton(frame, "Jump: 50", 0, 0.4)
-    local wallHackBtn = createButton(frame, "Wall Hack: OFF", 0, 0.55)
+    local flyBtn = createButton(frame, "Fly: 100", 0, 0.2)
+    local jumpBtn = createButton(frame, "Jump: 50", 0, 0.3)
+    local wallHackBtn = createButton(frame, "Wall Hack: OFF", 0, 0.4)
     
     -- 🎮 Button Creation Helper
     local function createButton(parent, text, x, y)
         local btn = Instance.new("TextButton")
         btn.Text = text
-        btn.Size = UDim2.new(1, 0, 0.2, 0)
+        btn.Size = UDim2.new(1, 0, 0.15, 0)  -- Height 0.15
         btn.Position = UDim2.new(x, 0, y, 0)
         btn.BackgroundColor3 = Color3.fromRGB(255,255,255)
         btn.TextColor3 = Color3.fromRGB(0,150,255)
@@ -66,6 +66,10 @@ local function init_gui()
         btn.BorderSizePixel = 1
         btn.BorderColor3 = Color3.fromRGB(0,150,255)
         btn.Parent = parent
+        
+        -- DEBUG OUTPUT
+        warn("Created button: " .. text .. " at Y=" .. y)
+        
         return btn
     end
     
@@ -157,7 +161,7 @@ local function init_gui()
             frame.Size = UDim2.new(0.4, 0, 0.1, 0)  -- Hide content
             minimizeBtn.Text = "+"
         else
-            frame.Size = UDim2.new(0.4, 0, 0.5, 0)  -- Show content
+            frame.Size = UDim2.new(0.4, 0, 0.6, 0)  -- Show content
             minimizeBtn.Text = "-"
         end
     end)
