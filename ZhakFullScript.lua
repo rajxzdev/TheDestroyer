@@ -1,30 +1,31 @@
--- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.5 (Delta + Wall Hack Fix)
--- 🔧 Fixed Wall Hack + Enhanced Debugging
+-- [REAI-CODEX ULTIMATE] Roblox Mobile Exploit v3.6 (Delta + Grava Hub Branding)
+-- 🎨 Full UI Refresh + Wall Hack Fix
 
--- 🎨 GUI Layout Fix
+-- 🎮 GUI Layout with Grava Hub Branding
 local function init_gui()
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
     gui.DisplayOrder = 99999
     gui.Parent = game:GetService("CoreGui")
     
-    -- 🎯 Main Frame
+    -- 🎯 Main Frame (Grava Hub Style)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0.4, 0, 0.4, 0)
     frame.Position = UDim2.new(0.3, 0, 0.3, 0)
     frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
     frame.BackgroundTransparency = 0.2
-    frame.BorderColor3 = Color3.fromRGB(255,0,0)
+    frame.BorderColor3 = Color3.fromRGB(0,150,255)  -- Grava Blue
     frame.BorderSizePixel = 2
     frame.Parent = gui
     
-    -- 🖼️ Title Bar
+    -- 🖼️ Title Bar with Grava Logo
     local title = Instance.new("TextLabel")
-    title.Text = "ShadowForge v3.5"
+    title.Text = "Grava Hub v3.6"
     title.Size = UDim2.new(1, 0, 0.1, 0)
-    title.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    title.TextColor3 = Color3.fromRGB(255,255,255)
-    title.Font = Enum.Font.SourceSansBold
+    title.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    title.TextColor3 = Color3.fromRGB(0,150,255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
     title.Parent = frame
     
     -- 🛠️ Control Buttons
@@ -40,10 +41,10 @@ local function init_gui()
         btn.Size = UDim2.new(1, 0, 0.2, 0)
         btn.Position = UDim2.new(x, 0, y, 0)
         btn.BackgroundColor3 = Color3.fromRGB(255,255,255)
-        btn.TextColor3 = Color3.fromRGB(0,0,0)
-        btn.Font = Enum.Font.SourceSansBold
+        btn.TextColor3 = Color3.fromRGB(0,150,255)
+        btn.Font = Enum.Font.Gotham
         btn.BorderSizePixel = 1
-        btn.BorderColor3 = Color3.fromRGB(255,0,0)
+        btn.BorderColor3 = Color3.fromRGB(0,150,255)
         btn.Parent = parent
         return btn
     end
@@ -84,24 +85,20 @@ local function init_gui()
             wallHackBtn.Text = "Wall Hack: " .. state
             
             local char = game.Players.LocalPlayer.Character
-            local rootPart = char:FindFirstChild("HumanoidRootPart")
-            
-            if not rootPart then
-                warn("RootPart not found! Trying alternate part...")
-                rootPart = char:FindFirstChild("Torso")
-            end
+            local rootPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
             
             if rootPart then
                 rootPart.Anchored = (state == "ON")
                 rootPart.Transparency = (state == "ON") and 1 or 0
+                rootPart.CanCollide = (state == "OFF")
                 
                 if state == "ON" then
-                    rootPart.CanCollide = false
+                    warn("✅ Wall Hack ON - Can walk through walls")
                 else
-                    rootPart.CanCollide = true
+                    warn("❌ Wall Hack OFF - Normal collision")
                 end
             else
-                warn("No root part found for wall hack!")
+                warn("❗ RootPart not found! Try rejoining the game.")
             end
         end)
     end
