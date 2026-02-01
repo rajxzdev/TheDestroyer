@@ -1,20 +1,14 @@
---[[ ---------------------------------------------------------------
-   ZhakFullScript.lua
-   • Self‑contained – tidak memanggil HttpGet, tidak butuh file eksternal.
-   • Semua UI dibuat *setelah* scrollFrame ada, jadi tidak ada nil‑parent.
-   • CanvasSize di‑update otomatis lewat UIListLayout + UIScale (fallback manual).
-   • Semua kontrol (Fly, Speed, Noclip, God, Troll, Spawn Part, dll) ada.
-   • Cocok untuk Delta 2025, Codex, Fluxus, Electron, dll.
------------------------------------------------------------------ ]]
+-- ZHAK-GPT FINAL SCRIPT (2025)
+-- Fitur: Fly, Speed, Noclip, God Mode, Troll Part, Device Detector, Open/Close/Minimize
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--------------------------------------------------
+-- ==============================================
 -- SETTINGS
--------------------------------------------------
+-- ==============================================
 local Settings = {
     Fly = false,
     FlySpeed = 75,
@@ -24,66 +18,98 @@ local Settings = {
     GodMode = false,
     InfiniteJump = false,
     TrollSize = 10,
+    Minimized = false
 }
+
 local CurrentChar, CurrentHumanoid = nil, nil
 
--------------------------------------------------
--- HELPER: dapatkan parent yang aman untuk ScreenGui
--------------------------------------------------
-local function getGuiParent()
-    -- 1️⃣ CoreGui (paling aman)
-    local ok, core = pcall(function() return game:GetService("CoreGui") end)
-    if ok and core then return core end
-    -- 2️⃣ gethui() (beberapa executor)
-    local ok2, getHui = pcall(function() return gethui() end)
-    if ok2 and getHui then return getHui() end
-    -- 3️⃣ fallback ke PlayerGui
+-- ==============================================
+-- DETEKSI DEVICE (MOBILE/PC)
+-- ==============================================
+local isMobile = UIS.TouchEnabled
+local screenSize = workspace.CurrentCamera.ViewportSize
+local scaleFactor = isMobile and 0.8 or 1.0  -- Skala GUI lebih kecil di mobile
+
+-- ==============================================
+-- GUI PARENT (CoreGui/PlayerGui)
+-- ==============================================
+local function GetGuiParent()
+    local success, coreGui = pcall(function() return game:GetService("CoreGui") end)
+    if success and coreGui then return coreGui end
     return LocalPlayer:WaitForChild("PlayerGui")
 end
 
--------------------------------------------------
--- CREATE SCREEN & PANEL
--------------------------------------------------
-local parent = getGuiParent()
-if parent:FindFirstChild("ZhakFullScript") then parent.ZhakFullScript:Destroy() end
+local parent = GetGuiParent()
 
-local screen = Instance.new("ScreenGui")
-screen.Name = "ZhakFullScript"
-screen.Parent = parent
-screen.IgnoreGuiInset = true
-screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- Hapus GUI lama jika ada
+if parent:FindFirstChild("ZhakFinalGUI") then
+    parent.ZhakFinalGUI:Destroy()
+end
 
-local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 340, 0, 500)               -- sedikit lebih tinggi supaya semua kontrol muat
-panel.Position = UDim2.new(0.5, -170, 0.5, -250)   -- tengah
-panel.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-panel.Draggable = true
-panel.Active = true
-panel.Visible = true
-panel.Parent = screen
+-- ==============================================
+-- BUILD GUI
+-- ==============================================
+local gui = Instance.new("ScreenGui")
+gui.Name = "ZhakFinalGUI"
+gui.Parent = parent
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local panelCorner = Instance.new("UICorner")
-panelCorner.CornerRadius = UDim.new(0, 8)
-panelCorner.Parent = panel
+-- MAIN FRAME (Ukuran otomatis menyesuaikan device)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 320 * scaleFactor, 0, 480 * scaleFactor)
+mainFrame.Position = UDim2.new(0.5, -160 * scaleFactor, 0.5, -240 * scaleFactor)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = true
+mainFrame.Parent = gui
 
--- ---------- Header ----------
-local header = Instance.new("TextLabel")
-header.Size = UDim2.new(1, 0, 0, 45)
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 8)
+mainCorner.Parent = mainFrame
+
+-- HEADER (Tombol Open/Close/Minimize)
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 40)
 header.BackgroundColor3 = Color3.fromRGB(0, 180, 90)
-header.Text = "✅ ZHAK UNIVERSAL SCRIPT"
-header.TextColor3 = Color3.new(1,1,1)
-header.Font = Enum.Font.GothamBold
-header.TextSize = 16
-header.Parent = panel
+header.Parent = mainFrame
 
 local headerCorner = Instance.new("UICorner")
 headerCorner.CornerRadius = UDim.new(0, 8)
 headerCorner.Parent = header
 
--- ---------- Close button ----------
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0.6, 0, 1, 0)
+title.Position = UDim2.new(0.05, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "ZHAK FINAL SCRIPT"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = header
+
+-- TOMBOL MINIMIZE
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -70, 0, 5)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 190, 0)
+minimizeBtn.Text = "–"
+minimizeBtn.TextColor3 = Color3.new(1,1,1)
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 18
+minimizeBtn.Parent = header
+
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(0, 6)
+minimizeCorner.Parent = minimizeBtn
+
+-- TOMBOL CLOSE
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 35, 0, 35)
-closeBtn.Position = UDim2.new(1, -40, 0, 5)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
 closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
 closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.new(1,1,1)
@@ -95,45 +121,39 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeBtn
 
-closeBtn.MouseButton1Click:Connect(function()
-    screen:Destroy()
-    print("[ZHAK] GUI closed")
-end)
-
--- ---------- Scrollable area ----------
+-- SCROLLING FRAME (Agar bisa discroll di HP)
 local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, -10, 1, -55)   -- -55 = header(45) + small padding
-scrollFrame.Position = UDim2.new(0, 5, 0, 50)
+scrollFrame.Size = UDim2.new(1, -10, 1, -50)
+scrollFrame.Position = UDim2.new(0, 5, 0, 45)
 scrollFrame.BackgroundTransparency = 1
 scrollFrame.ScrollBarThickness = 5
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)   -- akan otomatis bertambah oleh UIListLayout
-scrollFrame.Parent = panel
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Akan otomatis bertambah
+scrollFrame.Parent = mainFrame
 
 local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 8)
-listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Parent = scrollFrame
 
--- -------------------------------------------------
--- UI CREATION HELPERS (executed *setelah* scrollFrame ada)
--- -------------------------------------------------
-local function addLabel(txt)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0.9, 0, 0, 20)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = txt
-    lbl.TextColor3 = Color3.fromRGB(0, 200, 120)
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 13
-    lbl.Parent = scrollFrame
-    return lbl
+-- ==============================================
+-- FUNGSI BANTU (Membuat Tombol, Label, dll)
+-- ==============================================
+local function CreateLabel(text)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.9, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(0, 200, 120)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.Parent = scrollFrame
+    return label
 end
 
-local function addButton(txt, cb)
+local function CreateButton(text, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9, 0, 0, 35)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-    btn.Text = txt
+    btn.Text = text
     btn.TextColor3 = Color3.new(1,1,1)
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 14
@@ -143,11 +163,11 @@ local function addButton(txt, cb)
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = btn
 
-    btn.MouseButton1Click:Connect(function() cb(btn) end)
+    btn.MouseButton1Click:Connect(function() callback(btn) end)
     return btn
 end
 
-local function addTextBox(placeholder)
+local function CreateTextBox(placeholder)
     local box = Instance.new("TextBox")
     box.Size = UDim2.new(0.9, 0, 0, 30)
     box.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
@@ -165,76 +185,97 @@ local function addTextBox(placeholder)
     return box
 end
 
--- -------------------------------------------------
--- BUILD UI (order matters!)
--- -------------------------------------------------
-addLabel("⚡ MOVEMENT")
+-- ==============================================
+-- TOMBOL MINIMIZE (Fungsi)
+-- ==============================================
+minimizeBtn.MouseButton1Click:Connect(function()
+    Settings.Minimized = not Settings.Minimized
+    if Settings.Minimized then
+        mainFrame.Size = UDim2.new(0, 320 * scaleFactor, 0, 40)
+        minimizeBtn.Text = "+"
+    else
+        mainFrame.Size = UDim2.new(0, 320 * scaleFactor, 0, 480 * scaleFactor)
+        minimizeBtn.Text = "–"
+    end
+end)
 
--- Fly toggle -------------------------------------------------
-local flyBtn = addButton("✈️ Fly: OFF", function(btn)
+-- TOMBOL CLOSE (Fungsi)
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+    print("[ZHAK] GUI ditutup")
+end)
+
+-- ==============================================
+-- SEMUA FITUR
+-- ==============================================
+CreateLabel("⚡ MOVEMENT")
+
+-- Fly Toggle
+local flyBtn = CreateButton("✈️ Fly: OFF", function(btn)
     Settings.Fly = not Settings.Fly
     btn.Text = "✈️ Fly: " .. (Settings.Fly and "ON" or "OFF")
-    btn.BackgroundColor3 = Settings.Fly and Color3.fromRGB(0,150,100) or Color3.fromRGB(40,40,45)
+    btn.BackgroundColor3 = Settings.Fly and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 45)
 end)
 
--- Fly Speed -------------------------------------------------
-addButton("🚀 ↑ Fly Speed", function()
+-- Fly Speed
+CreateButton("🚀 ↑ Fly Speed", function()
     Settings.FlySpeed = Settings.FlySpeed + 25
     if Settings.FlySpeed > 200 then Settings.FlySpeed = 25 end
-    print("[ZHAK] FlySpeed →", Settings.FlySpeed)
+    print("[ZHAK] Fly Speed →", Settings.FlySpeed)
 end)
 
--- Walk Speed ------------------------------------------------
-addButton("🏃 ↑ Walk Speed", function()
+-- Walk Speed
+CreateButton("🏃 ↑ Walk Speed", function()
     Settings.WalkSpeed = Settings.WalkSpeed + 25
     if Settings.WalkSpeed > 200 then Settings.WalkSpeed = 16 end
     if CurrentHumanoid then CurrentHumanoid.WalkSpeed = Settings.WalkSpeed end
-    print("[ZHAK] WalkSpeed →", Settings.WalkSpeed)
+    print("[ZHAK] Walk Speed →", Settings.WalkSpeed)
 end)
 
--- Jump Power ------------------------------------------------
-addButton("🦘 ↑ Jump Power", function()
+-- Jump Power
+CreateButton("🦘 ↑ Jump Power", function()
     Settings.JumpPower = Settings.JumpPower + 25
     if Settings.JumpPower > 200 then Settings.JumpPower = 50 end
     if CurrentHumanoid then CurrentHumanoid.JumpPower = Settings.JumpPower end
-    print("[ZHAK] JumpPower →", Settings.JumpPower)
+    print("[ZHAK] Jump Power →", Settings.JumpPower)
 end)
 
-addLabel("🛡️ CHEATS")
+CreateLabel("🛡️ CHEATS")
 
--- Noclip ----------------------------------------------------
-local noclipBtn = addButton("👻 Noclip: OFF", function(btn)
+-- Noclip
+local noclipBtn = CreateButton("👻 Noclip: OFF", function(btn)
     Settings.Noclip = not Settings.Noclip
     btn.Text = "👻 Noclip: " .. (Settings.Noclip and "ON" or "OFF")
-    btn.BackgroundColor3 = Settings.Noclip and Color3.fromRGB(0,150,100) or Color3.fromRGB(40,40,45)
+    btn.BackgroundColor3 = Settings.Noclip and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 45)
 end)
 
--- God Mode --------------------------------------------------
-local godBtn = addButton("💀 God Mode: OFF", function(btn)
+-- God Mode
+local godBtn = CreateButton("💀 God Mode: OFF", function(btn)
     Settings.GodMode = not Settings.GodMode
     btn.Text = "💀 God Mode: " .. (Settings.GodMode and "ON" or "OFF")
-    btn.BackgroundColor3 = Settings.GodMode and Color3.fromRGB(0,150,100) or Color3.fromRGB(40,40,45)
+    btn.BackgroundColor3 = Settings.GodMode and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 45)
 end)
 
--- Infinite Jump ---------------------------------------------
-local infJumpBtn = addButton("♾️ Infinite Jump: OFF", function(btn)
+-- Infinite Jump
+local infJumpBtn = CreateButton("♾️ Infinite Jump: OFF", function(btn)
     Settings.InfiniteJump = not Settings.InfiniteJump
     btn.Text = "♾️ Infinite Jump: " .. (Settings.InfiniteJump and "ON" or "OFF")
-    btn.BackgroundColor3 = Settings.InfiniteJump and Color3.fromRGB(0,150,100) or Color3.fromRGB(40,40,45)
+    btn.BackgroundColor3 = Settings.InfiniteJump and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 45)
 end)
 
-addLabel("🧟 TROLL")
+CreateLabel("🧟 TROLL")
 
-local trollTarget = addTextBox("Ketik nama player target")
+local trollTarget = CreateTextBox("Ketik nama player target")
 
-addButton("📏 Ukuran Part: 10", function()
+-- Ukuran Part
+CreateButton("📏 Ukuran Part: 10", function()
     Settings.TrollSize = Settings.TrollSize + 5
     if Settings.TrollSize > 30 then Settings.TrollSize = 5 end
     print("[ZHAK] Troll Part Size →", Settings.TrollSize)
 end)
 
--- Spawn Part button -----------------------------------------
-local spawnBtn = addButton("💥 Spawn Part di Atas Target", function()
+-- Spawn Part
+CreateButton("💥 Spawn Part di Atas Target", function()
     local name = trollTarget.Text
     if name == "" then
         print("[ZHAK] Masukkan nama dulu")
@@ -263,11 +304,11 @@ local spawnBtn = addButton("💥 Spawn Part di Atas Target", function()
     end)
 end)
 
--- -------------------------------------------------
--- MAIN LOOP (fly, noclip, god, etc.)
--- -------------------------------------------------
+-- ==============================================
+-- MAIN LOOP (Fly, Noclip, God, dll)
+-- ==============================================
 RunService.Heartbeat:Connect(function()
-    -- keep character reference fresh
+    -- Update karakter
     if LocalPlayer.Character ~= CurrentChar then
         CurrentChar = LocalPlayer.Character
         CurrentHumanoid = CurrentChar and CurrentChar:FindFirstChildOfClass("Humanoid")
@@ -278,7 +319,7 @@ RunService.Heartbeat:Connect(function()
     end
     if not CurrentChar or not CurrentHumanoid then return end
 
-    -- God mode
+    -- God Mode
     if Settings.GodMode then
         CurrentHumanoid.Health = CurrentHumanoid.MaxHealth
     end
@@ -290,7 +331,7 @@ RunService.Heartbeat:Connect(function()
         end
     end
 
-    -- Fly handling
+    -- Fly Logic
     if Settings.Fly then
         CurrentHumanoid.PlatformStand = true
         local cam = workspace.CurrentCamera
@@ -314,11 +355,11 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Infinite Jump handler
+-- Infinite Jump
 UIS.JumpRequest:Connect(function()
     if Settings.InfiniteJump and CurrentHumanoid then
         CurrentHumanoid:ChangeState("Jumping")
     end
 end)
 
-print("[ZHAK] SCRIPT LOADED – UI should be fully visible")
+print("[ZHAK] SCRIPT LOADED – GUI should be visible now!")
