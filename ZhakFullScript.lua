@@ -1,7 +1,9 @@
--- ZHAK-GPT | FAIL-SAFE SCRIPT (PASTI MUNCUL)
--- Panel pink akan langsung muncul di tengah layar.
+-- ==============================================================
+--  ZHAK-GPT FINAL v3.0 | MOBILE FLY SUPPORT GUARANTEED
+--  Panel akan langsung muncul. Fly bisa pakai joystick HP.
+-- ==============================================================
 
-print("🔥 [ZHAK] Memulai Fail-Safe Script...")
+print("🔥 [ZHAK] Memuat script v3.0 dengan Mobile Fly Support...")
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -9,13 +11,16 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- ==============================================
--- PENGATURAN DASAR
+-- PENGATURAN & STATUS
 -- ==============================================
 local Settings = {
     Fly = false, FlySpeed = 75,
     WalkSpeed = 16, JumpPower = 50,
-    Noclip = false, GodMode = false, InfJump = false
+    Noclip = false, GodMode = false, InfJump = false,
 }
+local FlyBodyVelocity = nil
+local MobileFlyUp = false -- Status tombol naik di HP
+local MobileFlyDown = false -- Status tombol turun di HP
 local CurrentChar, CurrentHumanoid = nil, nil
 
 -- ==============================================
@@ -28,10 +33,10 @@ local function GetGuiParent()
 end
 
 local parent = GetGuiParent()
-if parent:FindFirstChild("ZhakFailSafe") then parent.ZhakFailSafe:Destroy() end
+if parent:FindFirstChild("ZhakFinalGUI") then parent:FindFirstChild("ZhakFinalGUI"):Destroy() end
 
 local screen = Instance.new("ScreenGui")
-screen.Name = "ZhakFailSafe"
+screen.Name = "ZhakFinalGUI"
 screen.Parent = parent
 screen.IgnoreGuiInset = true
 screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -39,8 +44,8 @@ screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 320, 0, 480)
 mainFrame.Position = UDim2.new(0.5, -160, 0.5, -240)
-mainFrame.BackgroundColor3 = Color3.fromRGB(40, 20, 30) -- Warna dasar gelap
-mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 127) -- Border PINK
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 20, 30)
+mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 127)
 mainFrame.BorderSizePixel = 3
 mainFrame.Draggable = true
 mainFrame.Active = true
@@ -50,8 +55,8 @@ Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
 local header = Instance.new("TextLabel")
 header.Size = UDim2.new(1, 0, 0, 40)
-header.BackgroundColor3 = Color3.fromRGB(255, 0, 127) -- Header PINK
-header.Text = "✅ FAIL-SAFE PANEL"
+header.BackgroundColor3 = Color3.fromRGB(255, 0, 127)
+header.Text = "✅ FINAL v3.0 | MOBILE SUPPORT"
 header.TextColor3 = Color3.new(1, 1, 1)
 header.Font = Enum.Font.GothamBold
 header.TextSize = 16
@@ -80,9 +85,41 @@ listLayout.Padding = UDim.new(0, 8)
 listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 -- ==============================================
+-- TOMBOL VIRTUAL UNTUK MOBILE FLY (NAIK/TURUN)
+-- ==============================================
+local MobileFlyPad = Instance.new("Frame")
+MobileFlyPad.Size = UDim2.new(0, 80, 0, 180)
+MobileFlyPad.Position = UDim2.new(1, -90, 1, -190) -- Pojok kanan bawah
+MobileFlyPad.BackgroundTransparency = 1
+MobileFlyPad.Visible = false -- Muncul hanya saat fly aktif
+MobileFlyPad.Parent = screen
+
+local function CreateFlyPadButton(text, yPos, action)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 80)
+    btn.Position = UDim2.new(0, 0, 0, yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    btn.BackgroundTransparency = 0.5
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 40
+    btn.Parent = MobileFlyPad
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+
+    btn.MouseButton1Down:Connect(function() action(true) end)
+    btn.MouseButton1Up:Connect(function() action(false) end)
+    btn.TouchTapIn:Connect(function() action(true) end)
+    btn.TouchTapOut:Connect(function() action(false) end)
+end
+
+CreateFlyPadButton("▲", 0, function(state) MobileFlyUp = state end) -- Tombol Naik
+CreateFlyPadButton("▼", 90, function(state) MobileFlyDown = state end) -- Tombol Turun
+
+-- ==============================================
 -- FUNGSI MEMBUAT ELEMEN UI
 -- ==============================================
-local function CreateButton(text, callback)
+local function CreateButton(text, cb)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9, 0, 0, 35)
     btn.BackgroundColor3 = Color3.fromRGB(60, 30, 45)
@@ -91,7 +128,7 @@ local function CreateButton(text, callback)
     btn.Font = Enum.Font.Gotham
     btn.Parent = scrollFrame
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    if callback then btn.MouseButton1Click:Connect(function() callback(btn) end) end
+    if cb then btn.MouseButton1Click:Connect(function() cb(btn) end) end
     return btn
 end
 
@@ -111,14 +148,26 @@ end
 -- ==============================================
 -- MEMBUAT SEMUA TOMBOL FITUR
 -- ==============================================
-print("✅ Membuat tombol...")
-
--- MOVEMENT
 local flyBtn = CreateButton("✈️ Fly: OFF", function(btn)
     Settings.Fly = not Settings.Fly
     btn.Text = "✈️ Fly: " .. (Settings.Fly and "ON" or "OFF")
     btn.BackgroundColor3 = Settings.Fly and Color3.fromRGB(200, 0, 100) or Color3.fromRGB(60, 30, 45)
+    
+    MobileFlyPad.Visible = Settings.Fly -- Tampilkan/sembunyikan tombol virtual HP
+
+    if Settings.Fly then
+        if CurrentChar and not FlyBodyVelocity then
+            FlyBodyVelocity = Instance.new("BodyVelocity")
+            FlyBodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            FlyBodyVelocity.P = 5000
+            FlyBodyVelocity.Parent = CurrentChar.HumanoidRootPart
+        end
+    else
+        if FlyBodyVelocity then FlyBodyVelocity:Destroy(); FlyBodyVelocity = nil end
+        if CurrentHumanoid then CurrentHumanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end
+    end
 end)
+
 local flySpeedBox = CreateTextBox("Fly Speed (Default: 75)")
 local walkSpeedBox = CreateTextBox("Walk Speed (Default: 16)")
 local jumpPowerBox = CreateTextBox("Jump Power (Default: 50)")
@@ -127,7 +176,6 @@ CreateButton("SET ALL SPEEDS", function()
     Settings.FlySpeed = tonumber(flySpeedBox.Text) or 75
     Settings.WalkSpeed = tonumber(walkSpeedBox.Text) or 16
     Settings.JumpPower = tonumber(jumpPowerBox.Text) or 50
-    
     if CurrentHumanoid then
         CurrentHumanoid.WalkSpeed = Settings.WalkSpeed
         CurrentHumanoid.JumpPower = Settings.JumpPower
@@ -135,85 +183,54 @@ CreateButton("SET ALL SPEEDS", function()
     print("Kecepatan di-set!")
 end)
 
--- CHEATS
-CreateButton("👻 Noclip: OFF", function(btn)
-    Settings.Noclip = not Settings.Noclip
-    btn.Text = "👻 Noclip: " .. (Settings.Noclip and "ON" or "OFF")
-end)
-CreateButton("💀 God Mode: OFF", function(btn)
-    Settings.GodMode = not Settings.GodMode
-    btn.Text = "💀 God Mode: " .. (Settings.GodMode and "ON" or "OFF")
-end)
-CreateButton("♾️ Infinite Jump: OFF", function(btn)
-    Settings.InfJump = not Settings.InfJump
-    btn.Text = "♾️ Infinite Jump: " .. (Settings.InfJump and "ON" or "OFF")
-end)
-
-print("✅ Tombol berhasil dibuat.")
+CreateButton("👻 Noclip: OFF", function(btn) Settings.Noclip = not Settings.Noclip; btn.Text = "👻 Noclip: " .. (Settings.Noclip and "ON" or "OFF") end)
+CreateButton("💀 God Mode: OFF", function(btn) Settings.GodMode = not Settings.GodMode; btn.Text = "💀 God Mode: " .. (Settings.GodMode and "ON" or "OFF") end)
+CreateButton("♾️ Infinite Jump: OFF", function(btn) Settings.InfJump = not Settings.InfJump; btn.Text = "♾️ Infinite Jump: " .. (Settings.InfJump and "ON" or "OFF") end)
 
 -- ==============================================
--- LOOP UTAMA (LOGIKA FITUR)
+-- LOOP UTAMA (LOGIKA SEMUA FITUR)
 -- ==============================================
-print("🔥 Memulai loop utama...")
-
 RunService.Heartbeat:Connect(function()
-    -- Selalu update referensi karakter
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        CurrentChar = LocalPlayer.Character
-        CurrentHumanoid = CurrentChar.Humanoid
-    else
-        CurrentChar = nil
-        CurrentHumanoid = nil
-        return
-    end
+    CurrentChar = LocalPlayer.Character
+    CurrentHumanoid = CurrentChar and CurrentChar:FindFirstChildOfClass("Humanoid")
+    if not CurrentChar or not CurrentHumanoid then return end
 
-    -- GOD MODE
-    if Settings.GodMode then
-        CurrentHumanoid.Health = CurrentHumanoid.MaxHealth
-    end
+    if Settings.GodMode then CurrentHumanoid.Health = CurrentHumanoid.MaxHealth end
 
-    -- NOCLIP
     if Settings.Noclip then
         for _, part in pairs(CurrentChar:GetDescendants()) do
             if part:IsA("BasePart") then part.CanCollide = false end
         end
     end
 
-    -- FLY LOGIC (FIXED)
-    if Settings.Fly then
-        CurrentHumanoid.PlatformStand = true
+    -- LOGIKA FLY (PC + MOBILE HYBRID)
+    if Settings.Fly and FlyBodyVelocity then
         local cam = workspace.CurrentCamera
         local moveDir = Vector3.new()
         
-        if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir += cam.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir -= cam.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir -= cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir += cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0, 1, 0) end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0, 1, 0) end
+        -- Input Horizontal (Joystick HP & WASD PC)
+        local joystickMove = (cam.CFrame.LookVector * -CurrentHumanoid.MoveDirection.Z) + (cam.CFrame.RightVector * CurrentHumanoid.MoveDirection.X)
+        if joystickMove.Magnitude > 0.1 then -- Jika joystick digerakkan
+            moveDir += joystickMove
+        else -- Jika tidak, cek keyboard PC
+            if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir += cam.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir -= cam.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir -= cam.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir += cam.CFrame.RightVector end
+        end
         
-        local root = CurrentChar.HumanoidRootPart
-        -- Menggunakan Velocity agar tidak stuck di objek transparan
-        root.Velocity = moveDir.Unit * Settings.FlySpeed
-    else
-        if CurrentHumanoid.PlatformStand then
-            CurrentHumanoid.PlatformStand = false
-        end
-        if CurrentChar.HumanoidRootPart.Velocity.Magnitude > 0.1 and not Settings.Fly then
-            -- Hanya reset velocity jika fly baru saja dimatikan
-            task.spawn(function()
-                if not Settings.Fly then CurrentChar.HumanoidRootPart.Velocity = Vector3.new(0,0,0) end
-            end)
-        end
+        -- Input Vertikal (Tombol Virtual HP & Keyboard PC)
+        if MobileFlyUp or UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0, 1, 0) end
+        if MobileFlyDown or UIS:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir -= Vector3.new(0, 1, 0) end
+        
+        FlyBodyVelocity.Velocity = moveDir.Unit * Settings.FlySpeed
     end
 end)
 
--- INFINITE JUMP
 UIS.JumpRequest:Connect(function()
     if Settings.InfJump and CurrentHumanoid then
         CurrentHumanoid:ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
-print("✅ ZHAK FAIL-SAFE SCRIPT LOADED!")
-print("PANEL PINK SEHARUSNYA SUDAH MUNCUL DI TENGAH LAYAR.")
+print("✅ ZHAK FINAL v3.0 LOADED! Mobile Fly Support aktif.")
